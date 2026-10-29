@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Holy Family HSS Christmas frame</title>
+<style>
+  :root {
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    --bg: #f5f5f3;
+    --card: #ffffff;
+    --text: #1c1c1a;
+    --text-2: #5f5e5a;
+    --border: rgba(0, 0, 0, 0.18);
+    --accent: #185fa5;
+    --accent-text: #ffffff;
+    --placeholder: #d3d1c7;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #1c1c1a;
+      --card: #262624;
+      --text: #f1efe8;
+      --text-2: #b4b2a9;
+      --border: rgba(255, 255, 255, 0.22);
+      --accent: #85b7eb;
+      --accent-text: #0c2a4a;
+      --placeholder: #444441;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #1c1c1a;
+    --card: #262624;
+    --text: #f1efe8;
+    --text-2: #b4b2a9;
+    --border: rgba(255, 255, 255, 0.22);
+    --accent: #85b7eb;
+    --accent-text: #0c2a4a;
+    --placeholder: #444441;
+  }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 20px 16px 32px;
+    background: var(--bg);
+    color: var(--text);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.5;
+  }
+  .card {
+    max-width: 460px;
+    margin: 0 auto;
+    padding: 20px;
+    background: var(--card);
+    border: 0.5px solid var(--border);
+    border-radius: 12px;
+  }
+  h1 { margin: 0 0 4px; font-size: 20px; font-weight: 500; }
+  .lead { margin: 0 0 16px; font-size: 14px; color: var(--text-2); }
+  .stage { display: flex; justify-content: center; margin: 4px 0 6px; }
+  canvas {
+    width: 100%;
+    max-width: 340px;
+    aspect-ratio: 1 / 1;
+    border-radius: 50%;
+    touch-action: none;
+    cursor: grab;
+    background: transparent;
+  }
+  canvas.dragging { cursor: grabbing; }
+  .hint { text-align: center; font-size: 13px; color: var(--text-2); margin: 0 0 8px; min-height: 20px; }
+  label { display: block; margin: 14px 0 4px; font-size: 13px; color: var(--text-2); }
+  input[type="text"], select {
+    width: 100%;
+    height: 40px;
+    padding: 8px 12px;
+    background: var(--card);
+    color: var(--text);
+    border: 0.5px solid var(--border);
+    border-radius: 8px;
+    font: inherit;
+    font-size: 16px;
+  }
+  input[type="range"] { width: 100%; }
+  input:focus-visible, button:focus-visible, .swatch:focus-visible, .file-btn:focus-within {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .swatch {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    border: 2px solid var(--card);
+    box-shadow: 0 0 0 1px var(--border);
+    cursor: pointer;
+    padding: 0;
+  }
+  .swatch[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--text); }
+  .custom { position: relative; width: 34px; height: 34px; }
+  .custom input {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    opacity: 0; cursor: pointer;
+  }
+  .custom span {
+    display: block; width: 100%; height: 100%; border-radius: 50%;
+    background: conic-gradient(#e24b4a, #ef9f27, #97c459, #378add, #7f77dd, #e24b4a);
+    box-shadow: 0 0 0 1px var(--border);
+  }
+  .file-btn {
+    display: flex; align-items: center; justify-content: center;
+    height: 44px;
+    border: 0.5px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 15px;
+  }
+  .file-btn:hover { background: rgba(127, 127, 127, 0.12); }
+  .file-btn { position: relative; overflow: hidden; }
+  .file-btn input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; font-size: 100px; }
+  .primary {
+    width: 100%; height: 46px; margin-top: 18px;
+    background: var(--accent); color: var(--accent-text);
+    border: none; border-radius: 8px;
+    font: inherit; font-weight: 500; cursor: pointer;
+  }
+  .secondary {
+    width: 100%; height: 40px; margin-top: 8px;
+    background: transparent; color: var(--text);
+    border: 0.5px solid var(--border); border-radius: 8px;
+    font: inherit; font-size: 14px; cursor: pointer;
+  }
+  .primary:disabled, .secondary:disabled { opacity: 0.5; cursor: default; }
+  .msg { min-height: 20px; margin: 10px 0 0; font-size: 13px; text-align: center; color: var(--text-2); }
+  .fallback { display: none; text-align: center; margin-top: 12px; }
+  .fallback img { width: 100%; max-width: 240px; border-radius: 50%; }
+  .fallback p { font-size: 13px; color: var(--text-2); margin: 6px 0 0; }
+
+  .gal-head { display: flex; align-items: baseline; justify-content: space-between; margin: 26px 0 6px; }
+  .gal-head h2 { margin: 0; font-size: 16px; font-weight: 500; }
+  .gal-note { margin: 0 0 10px; font-size: 13px; color: var(--text-2); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 12px; }
+  .item { text-align: center; }
+  .item img { width: 100%; aspect-ratio: 1 / 1; border-radius: 50%; display: block; background: var(--placeholder); }
+  .item .acts { display: flex; gap: 6px; margin-top: 6px; }
+  .item button {
+    flex: 1; height: 32px; font: inherit; font-size: 13px; cursor: pointer;
+    background: transparent; color: var(--text);
+    border: 0.5px solid var(--border); border-radius: 6px;
+  }
+  .item button:hover { background: rgba(127, 127, 127, 0.12); }
+  .empty { grid-column: 1 / -1; font-size: 13px; color: var(--text-2); margin: 0; }
+  .linkbtn {
+    background: none; border: none; padding: 0; color: var(--text-2);
+    font: inherit; font-size: 13px; text-decoration: underline; cursor: pointer;
+  }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <h1>Happy Christmas, Holy Family HSS</h1>
+  <p class="lead">Add your photo to get the Holy Family HSS Kottayam Christmas frame, then save it and use it as your profile picture.</p>
+
+  <div class="stage"><canvas id="cv" width="1080" height="1080" aria-label="Profile photo preview"></canvas></div>
+  <p class="hint" id="hint">Add a photo to get started</p>
+
+  <label class="file-btn"><input type="file" id="file" accept="image/*">Choose a photo</label>
+
+  <label for="zoom">Zoom</label>
+  <input type="range" id="zoom" min="1" max="3" step="0.01" value="1" disabled>
+
+  <label for="top">Top text</label>
+  <input type="text" id="top" maxlength="26" value="HAPPY CHRISTMAS">
+
+  <label for="bottom">Bottom text</label>
+  <input type="text" id="bottom" maxlength="26" value="HOLY FAMILY HSS KOTTAYAM" placeholder="Your name or school">
+
+  <label for="hat">Santa hat</label>
+  <select id="hat">
+    <option value="right">Top right</option>
+    <option value="left">Top left</option>
+    <option value="none">None</option>
+  </select>
+
+  <label>Ring colour</label>
+  <div class="row" id="swatches"></div>
+
+  <button class="primary" id="save" disabled>Save profile photo</button>
+  <button class="secondary" id="saveFrame">Save frame only (transparent)</button>
+  <p class="msg" id="msg" role="status"></p>
+
+  <div class="fallback" id="fallback">
+    <img id="fbImg" alt="Your finished profile photo">
+    <p>Press and hold the picture to save it.</p>
+  </div>
+
+  <div class="gal-head">
+    <h2>Your saved frames</h2>
+    <button type="button" class="linkbtn" id="forget">Clear my saved data</button>
+  </div>
+  <p class="gal-note">Kept on this device only. Your last photo and settings are remembered too.</p>
+  <div class="grid" id="gallery"></div>
+</div>
+
+<script>
+(function () {
+  var S = 1080, THICK = 96;
+  var cv = document.getElementById("cv"), ctx = cv.getContext("2d");
+  var $ = function (id) { return document.getElementById(id); };
+
+  var COLORS = ["#b3202a", "#1e6b3a", "#1877f2", "#7f77dd", "#2c2c2a"];
+  var state = { img: null, zoom: 1, ox: 0, oy: 0, color: COLORS[0] };
+
+  // ---------- colour picker ----------
+  var sw = $("swatches");
+  COLORS.forEach(function (c) {
+    var b = document.createElement("button");
+    b.type = "button"; b.className = "swatch"; b.style.background = c;
+    b.setAttribute("aria-label", "Ring colour " + c);
+    b.setAttribute("aria-pressed", c === state.color ? "true" : "false");
+    b.addEventListener("click", function () { setColor(c); });
+    sw.appendChild(b);
+  });
+  var custom = document.createElement("label");
+  custom.className = "custom"; custom.style.margin = "0";
+  custom.innerHTML = '<span></span><input type="color" aria-label="Custom ring colour" value="#b3202a">';
+  sw.appendChild(custom);
+  custom.querySelector("input").addEventListener("input", function (e) { setColor(e.target.value); });
+
+  function setColor(c) {
+    state.color = c;
+    Array.prototype.forEach.call(sw.querySelectorAll(".swatch"), function (b) {
+      b.setAttribute("aria-pressed", b.style.background && rgbToHex(b.style.background) === c.toLowerCase() ? "true" : "false");
+    });
+    draw();
+  }
+  function rgbToHex(rgb) {
+    var m = rgb.match(/\d+/g);
+    if (!m) return rgb;
+    return "#" + m.slice(0, 3).map(function (n) { return ("0" + (+n).toString(16)).slice(-2); }).join("");
+  }
+  function textOn(hex) {
+    var n = parseInt(hex.slice(1), 16), r = n >> 16, g = (n >> 8) & 255, b = n & 255;
+    return (0.299 * r + 0.587 * g + 0.114 * b) > 160 ? "#1c1c1a" : "#ffffff";
+  }
+
+  // ---------- drawing ----------
+  function arcText(text, r, center, top) {
+    var chars = Array.from(text), gap = 8, widths = chars.map(function (c) { return ctx.measureText(c).width + gap; });
+    var total = widths.reduce(function (a, b) { return a + b; }, 0) - gap, span = total / r;
+    var a = top ? center - span / 2 : center + span / 2;
+    chars.forEach(function (c, i) {
+      var w = widths[i], half = (w - gap) / 2 / r, step = w / r;
+      var ang = top ? a + half : a - half;
+      ctx.save();
+      ctx.translate(S / 2 + r * Math.cos(ang), S / 2 + r * Math.sin(ang));
+      ctx.rotate(top ? ang + Math.PI / 2 : ang - Math.PI / 2);
+      ctx.fillText(c, 0, 0);
+      ctx.restore();
+      a += top ? step : -step;
+    });
+  }
+
+  function drawHat() {
+    var side = $("hat").value;
+    if (side === "none") return;
+    var theta = (side === "left" ? -58 : 58) * Math.PI / 180, rb = 360, sc = 0.9;
+    var a = -Math.PI / 2 + theta;
+    ctx.save();
+    ctx.translate(S / 2 + rb * Math.cos(a), S / 2 + rb * Math.sin(a));
+    ctx.rotate(theta);
+    ctx.scale(side === "left" ? -sc : sc, sc);
+    ctx.lineJoin = "round";
+
+    // hat body
+    ctx.beginPath();
+    ctx.moveTo(-125, -20);
+    ctx.bezierCurveTo(-125, -110, -60, -175, 20, -185);
+    ctx.bezierCurveTo(80, -192, 130, -160, 150, -105);
+    ctx.lineTo(125, -20);
+    ctx.closePath();
+    ctx.fillStyle = "#d62839"; ctx.fill();
+    ctx.lineWidth = 7; ctx.strokeStyle = "#6f0f1c"; ctx.stroke();
+
+    // fur band
+    ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(-145, -34, 290, 68, 34);
+    else ctx.rect(-145, -34, 290, 68);
+    ctx.fillStyle = "#ffffff"; ctx.fill();
+    ctx.lineWidth = 6; ctx.strokeStyle = "rgba(0,0,0,0.35)"; ctx.stroke();
+
+    // pom-pom
+    ctx.beginPath(); ctx.arc(150, -95, 36, 0, Math.PI * 2);
+    ctx.fillStyle = "#ffffff"; ctx.fill(); ctx.stroke();
+    ctx.restore();
+  }
+
+  function star(cx, cy, r) {
+    ctx.beginPath();
+    for (var i = 0; i < 10; i++) {
+      var rad = i % 2 ? r * 0.45 : r, a = -Math.PI / 2 + i * Math.PI / 5;
+      ctx.lineTo(cx + rad * Math.cos(a), cy + rad * Math.sin(a));
+    }
+    ctx.closePath(); ctx.fill();
+  }
+
+  function render(frameOnly) {
+    ctx.clearRect(0, 0, S, S);
+    var R = S / 2;
+
+    if (!frameOnly) {
+      ctx.save();
+      ctx.beginPath(); ctx.arc(R, R, R, 0, Math.PI * 2); ctx.clip();
+      if (state.img) {
+        var iw = state.img.naturalWidth, ih = state.img.naturalHeight;
+        var sc = Math.max(S / iw, S / ih) * state.zoom;
+        var dw = iw * sc, dh = ih * sc;
+        ctx.drawImage(state.img, (S - dw) / 2 + state.ox, (S - dh) / 2 + state.oy, dw, dh);
+      } else {
+        ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue("--placeholder").trim() || "#d3d1c7";
+        ctx.fillRect(0, 0, S, S);
+      }
+      ctx.restore();
+    }
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(R, R, R, 0, Math.PI * 2);
+    ctx.arc(R, R, R - THICK, 0, Math.PI * 2, true);
+    ctx.fillStyle = state.color;
+    ctx.fill("evenodd");
+    ctx.restore();
+
+    // gold line on the inner edge and a star on each side
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(R, R, R - THICK + 5, 0, Math.PI * 2);
+    ctx.strokeStyle = "#f2c94c"; ctx.lineWidth = 8; ctx.stroke();
+    ctx.fillStyle = "#f2c94c";
+    [R - (R - THICK / 2), R + (R - THICK / 2)].forEach(function (x) { star(x, R, 24); });
+    ctx.restore();
+
+    var top = $("top").value.trim().toUpperCase(), bottom = $("bottom").value.trim().toUpperCase();
+    ctx.fillStyle = textOn(state.color);
+    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.font = "700 46px system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif";
+    var mid = R - THICK / 2;
+    if (top) arcText(top, mid, -Math.PI / 2, true);
+    if (bottom) arcText(bottom, mid, Math.PI / 2, false);
+    drawHat();
+  }
+  function draw() { render(false); persist(); }
+
+  // ---------- photo + drag/zoom ----------
+  var lastPick = null;
+  function onPick(e) {
+    var f = e.target.files && e.target.files[0];
+    if (!f || f === lastPick) return;
+    lastPick = f;
+    e.target.value = "";
+    var url = URL.createObjectURL(f), im = new Image();
+    im.onload = function () {
+      state.img = im; state.ox = 0; state.oy = 0; state.zoom = 1;
+      $("zoom").value = 1; $("zoom").disabled = false; $("save").disabled = false;
+      $("hint").textContent = "Drag the photo to reposition it";
+      draw();
+      rememberPhoto(im);
+    };
+    im.onerror = function () { $("msg").textContent = "That file couldn't be opened. Try a JPG or PNG."; };
+    im.src = url;
+  }
+  $("file").addEventListener("change", onPick);
+  $("file").addEventListener("input", onPick);
+  $("zoom").addEventListener("input", function (e) { state.zoom = parseFloat(e.target.value); draw(); });
+
+  var drag = null;
+  cv.addEventListener("pointerdown", function (e) {
+    if (!state.img) return;
+    drag = { x: e.clientX, y: e.clientY, ox: state.ox, oy: state.oy };
+    cv.setPointerCapture(e.pointerId); cv.classList.add("dragging");
+  });
+  cv.addEventListener("pointermove", function (e) {
+    if (!drag) return;
+    var k = S / cv.getBoundingClientRect().width;
+    state.ox = drag.ox + (e.clientX - drag.x) * k;
+    state.oy = drag.oy + (e.clientY - drag.y) * k;
+    draw();
+  });
+  function end() { drag = null; cv.classList.remove("dragging"); }
+  cv.addEventListener("pointerup", end);
+  cv.addEventListener("pointercancel", end);
+
+  $("top").addEventListener("input", draw);
+  $("bottom").addEventListener("input", draw);
+  $("hat").addEventListener("change", draw);
+
+  // ---------- storage (this browser only) ----------
+  var MAX_ITEMS = 12, restored = false, pt = null, galleryUrls = [];
+
+  function openDb() {
+    return new Promise(function (res) {
+      try {
+        var rq = indexedDB.open("profileFrameXmas", 1);
+        rq.onupgradeneeded = function () {
+          rq.result.createObjectStore("kv");
+          rq.result.createObjectStore("gallery", { keyPath: "id" });
+        };
+        rq.onsuccess = function () { res(rq.result); };
+        rq.onerror = rq.onblocked = function () { res(null); };
+      } catch (e) { res(null); }
+    });
+  }
+  var dbp = openDb();
+
+  function tx(store, mode, fn) {
+    return dbp.then(function (d) {
+      if (!d) return null;
+      return new Promise(function (res) {
+        try {
+          var t = d.transaction(store, mode), r = fn(t.objectStore(store));
+          t.oncomplete = function () { res(r && r.result !== undefined ? r.result : null); };
+          t.onerror = t.onabort = function () { res(null); };
+        } catch (e) { res(null); }
+      });
+    });
+  }
+  function kvGet(k) { return tx("kv", "readonly", function (s) { return s.get(k); }); }
+  function kvPut(k, v) { return tx("kv", "readwrite", function (s) { return s.put(v, k); }); }
+
+  function persist() {
+    if (!restored) return;
+    clearTimeout(pt);
+    pt = setTimeout(function () {
+      kvPut("settings", {
+        top: $("top").value, bottom: $("bottom").value, hat: $("hat").value, color: state.color,
+        zoom: state.zoom, ox: state.ox, oy: state.oy
+      });
+    }, 400);
+  }
+
+  function rememberPhoto(im) {
+    try {
+      var k = Math.min(1, 1400 / Math.max(im.naturalWidth, im.naturalHeight));
+      var c = document.createElement("canvas");
+      c.width = Math.round(im.naturalWidth * k); c.height = Math.round(im.naturalHeight * k);
+      c.getContext("2d").drawImage(im, 0, 0, c.width, c.height);
+      c.toBlob(function (b) { if (b) kvPut("photo", b); }, "image/jpeg", 0.9);
+    } catch (e) { /* storage is optional */ }
+  }
+
+  function addToGallery(blob) {
+    return tx("gallery", "readwrite", function (s) {
+      return s.put({ id: Date.now(), blob: blob });
+    }).then(function () {
+      return tx("gallery", "readonly", function (s) { return s.getAll(); });
+    }).then(function (all) {
+      var extra = (all || []).sort(function (a, b) { return b.id - a.id; }).slice(MAX_ITEMS);
+      if (!extra.length) return;
+      return tx("gallery", "readwrite", function (s) {
+        extra.forEach(function (x) { s.delete(x.id); });
+      });
+    }).then(renderGallery);
+  }
+
+  function renderGallery() {
+    return tx("gallery", "readonly", function (s) { return s.getAll(); }).then(function (all) {
+      var g = $("gallery");
+      galleryUrls.forEach(URL.revokeObjectURL); galleryUrls = [];
+      g.textContent = "";
+      all = (all || []).sort(function (a, b) { return b.id - a.id; });
+      if (!all.length) {
+        var e = document.createElement("p");
+        e.className = "empty"; e.textContent = "Frames you save will show up here.";
+        g.appendChild(e); return;
+      }
+      all.forEach(function (it) {
+        var url = URL.createObjectURL(it.blob); galleryUrls.push(url);
+        var box = document.createElement("div"); box.className = "item";
+        var im = document.createElement("img"); im.src = url; im.alt = "Saved profile photo";
+        var acts = document.createElement("div"); acts.className = "acts";
+        var sv = document.createElement("button"); sv.type = "button"; sv.textContent = "Save";
+        sv.addEventListener("click", function () {
+          offer(it.blob, "profile-photo.png").catch(function () {});
+        });
+        var dl = document.createElement("button"); dl.type = "button"; dl.textContent = "Delete";
+        dl.addEventListener("click", function () {
+          tx("gallery", "readwrite", function (s) { return s.delete(it.id); }).then(renderGallery);
+        });
+        acts.appendChild(sv); acts.appendChild(dl);
+        box.appendChild(im); box.appendChild(acts); g.appendChild(box);
+      });
+    });
+  }
+
+  $("forget").addEventListener("click", function () {
+    Promise.all([
+      tx("kv", "readwrite", function (s) { return s.clear(); }),
+      tx("gallery", "readwrite", function (s) { return s.clear(); })
+    ]).then(function () {
+      state.img = null; state.ox = 0; state.oy = 0; state.zoom = 1;
+      $("zoom").value = 1; $("zoom").disabled = true; $("save").disabled = true;
+      $("hint").textContent = "Add a photo to get started";
+      $("msg").textContent = "Saved photo, settings and frames cleared.";
+      draw(); renderGallery();
+    });
+  });
+
+  function restore() {
+    return Promise.all([kvGet("settings"), kvGet("photo")]).then(function (r) {
+      var s = r[0], p = r[1];
+      if (s) {
+        if (typeof s.top === "string") $("top").value = s.top;
+        if (typeof s.bottom === "string") $("bottom").value = s.bottom;
+        if (s.hat === "left" || s.hat === "right" || s.hat === "none") $("hat").value = s.hat;
+        state.zoom = s.zoom || 1; state.ox = s.ox || 0; state.oy = s.oy || 0;
+        $("zoom").value = state.zoom;
+        if (/^#[0-9a-f]{6}$/i.test(s.color || "")) {
+          custom.querySelector("input").value = s.color;
+          setColor(s.color);
+        }
+      }
+      if (p) {
+        var im = new Image();
+        im.onload = function () {
+          state.img = im;
+          $("zoom").disabled = false; $("save").disabled = false;
+          $("hint").textContent = "Welcome back. Your last photo and settings are loaded.";
+          draw();
+        };
+        im.src = URL.createObjectURL(p);
+      }
+    }).then(function () { restored = true; draw(); return renderGallery(); });
+  }
+
+  // ---------- saving ----------
+  function toBlob(frameOnly) {
+    return new Promise(function (resolve, reject) {
+      render(frameOnly);
+      cv.toBlob(function (b) { draw(); b ? resolve(b) : reject(new Error("Could not create the image")); }, "image/png");
+    });
+  }
+
+  function offer(blob, name) {
+    var msg = $("msg");
+    var use = window.claude && window.claude.use ? window.claude.use("downloads") : Promise.resolve(null);
+    return use.then(function (dl) {
+      if (!dl) {
+        $("fbImg").src = URL.createObjectURL(blob);
+        $("fallback").style.display = "block";
+        msg.textContent = "Saving isn't available here.";
+        return;
+      }
+      return dl.save({ filename: name, data: blob }).then(function () {
+        msg.textContent = "Saved. Now set it as your profile picture.";
+      });
+    });
+  }
+
+  function save(frameOnly) {
+    $("msg").textContent = "";
+    toBlob(frameOnly).then(function (blob) {
+      var name = (frameOnly ? "profile-frame" : "profile-photo") + ".png";
+      return offer(blob, name).then(function () {
+        if (!frameOnly) return addToGallery(blob);
+      });
+    }).catch(function (err) {
+      if (err && err.code === "declined") return;
+      $("msg").textContent = "Couldn't save the image. Please try again.";
+    });
+  }
+  $("save").addEventListener("click", function () { save(false); });
+  $("saveFrame").addEventListener("click", function () { save(true); });
+
+  draw();
+  restore();
+})();
+</script>
+</body>
+</html>
